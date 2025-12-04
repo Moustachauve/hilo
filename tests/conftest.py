@@ -1,4 +1,9 @@
 """Fixtures for testing."""
+import json
+import socket
+from collections import namedtuple
+from collections.abc import Generator
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -75,6 +80,55 @@ def mock_api() -> Generator[MagicMock]:
         yield api_mock
 
 
+@pytest.fixture(autouse=True)
+def mock_networking() -> Generator[None]:
+    """Mock networking calls to prevent thread/socket creation."""
+    # Define a Mock for ares_addrinfo_node
+    Node = namedtuple("Node", ["addr", "family"])
+
+    # Define a Mock for ares_addrinfo_result
+    class MockAddrInfoResult:
+        def __init__(self):
+            self.nodes = [
+                Node(addr=(b'127.0.0.1', 80), family=socket.AF_INET)
+            ]
+
+    with patch("homeassistant.helpers.aiohttp_client.async_get_clientsession", return_value=AsyncMock()), \
+         patch("pyhilo.graphql.GraphQlHelper") as mock_graphql_helper, \
+         patch("custom_components.hilo.GraphQlHelper") as mock_cc_graphql_helper, \
+         patch("custom_components.hilo.Hilo.should_websocket_reconnect", new_callable=PropertyMock, return_value=False), \
+         patch("pycares.Channel"), \
+         patch("aiodns.DNSResolver") as mock_dns_resolver, \
+         patch("aiohappyeyeballs.impl.start_connection") as mock_start_connection, \
+         patch("asyncio.BaseEventLoop.create_connection") as mock_create_connection:
+
+        # Configure the mocked GraphQlHelper instance (original module)
+        mock_graphql_helper_instance = mock_graphql_helper.return_value
+        mock_graphql_helper_instance.async_init = AsyncMock(return_value=None)
+        mock_graphql_helper_instance.subscribe_to_device_updated = AsyncMock(return_value=None)
+
+        # Configure the mocked GraphQlHelper instance (imported in custom_components)
+        mock_cc_graphql_helper_instance = mock_cc_graphql_helper.return_value
+        mock_cc_graphql_helper_instance.async_init = AsyncMock(return_value=None)
+        mock_cc_graphql_helper_instance.subscribe_to_device_updated = AsyncMock(return_value=None)
+
+        # Configure DNS Resolver to return AsyncMock for async methods
+        mock_dns_resolver_instance = mock_dns_resolver.return_value
+        mock_dns_resolver_instance.getaddrinfo = AsyncMock(return_value=MockAddrInfoResult())
+        mock_dns_resolver_instance.query = AsyncMock(return_value=[])
+
+        # Configure aiohappyeyeballs
+        mock_socket = MagicMock(spec=socket.socket)
+        mock_start_connection.return_value = mock_socket
+
+        # Configure create_connection
+        mock_transport = MagicMock()
+        mock_protocol = MagicMock()
+        mock_create_connection.return_value = (mock_transport, mock_protocol)
+
+        yield
+
+
 @pytest.fixture
 async def init_integration(
     hass: HomeAssistant,
@@ -84,14 +138,7 @@ async def init_integration(
     """Set up the Hilo integration for testing."""
     mock_config_entry.add_to_hass(hass)
 
-    with (
-        patch("custom_components.hilo.API.async_create", return_value=mock_api),
-        patch(
-            "custom_components.hilo.Hilo.should_websocket_reconnect",
-            new_callable=PropertyMock,
-        ) as mock_should_websocket_reconnect,
-    ):
-        mock_should_websocket_reconnect.return_value = False
+    with patch("custom_components.hilo.API.async_create", return_value=mock_api):
         await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 

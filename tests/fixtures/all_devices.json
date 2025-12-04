@@ -227,5 +227,75 @@
     "settableAttributesList": [],
     "supportedParameters": "",
     "supportedParametersList": []
+  },
+  {
+    "id": 111004,
+    "assetId": "c5ec12ef-5b69-44f9-9c73-0e999d00f3b5",
+    "hiloId": "urn:hilo:philo:1a2b3c4d5e6g:0",
+    "identifier": "1a2b3c4d5e6g",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Light 1",
+    "type": "WhiteBulb",
+    "groupId": 7834,
+    "category": "Lighting",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "A19",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Light",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Intensity,Disconnected",
+    "supportedAttributesList": [
+      "OnOff",
+      "Intensity",
+      "Disconnected"
+    ],
+    "settableAttributes": "OnOff,Intensity",
+    "settableAttributesList": [
+      "OnOff",
+      "Intensity"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": []
+  },
+  {
+    "id": 111005,
+    "assetId": "c5ec12ef-5b69-44f9-9c73-0e999d00f3b6",
+    "hiloId": "urn:hilo:philo:1a2b3c4d5e6h:0",
+    "identifier": "1a2b3c4d5e6h",
+    "gatewayId": 1001,
+    "gatewayExternalId": "100000",
+    "gatewayAssetId": "bff2b9f2-760f-4210-b9e6-686e12b407ae",
+    "name": "Switch 1",
+    "type": "Outlet",
+    "groupId": 7834,
+    "category": "Lighting",
+    "icon": null,
+    "loadConnected": null,
+    "modelNumber": "SW402",
+    "locationId": 123,
+    "parameters": null,
+    "externalGroup": "Switch",
+    "provider": 1,
+    "providerData": null,
+    "isFavorite": false,
+    "eTag": "",
+    "supportedAttributes": "OnOff,Disconnected",
+    "supportedAttributesList": [
+      "OnOff",
+      "Disconnected"
+    ],
+    "settableAttributes": "OnOff",
+    "settableAttributesList": [
+      "OnOff"
+    ],
+    "supportedParameters": "",
+    "supportedParametersList": []
   }
 ]
