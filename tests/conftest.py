@@ -1,6 +1,9 @@
 """Fixtures for testing."""
 
+import json
 import pytest
+from unittest.mock import patch, MagicMock, AsyncMock, PropertyMock
+from collections.abc import Generator
 from homeassistant.core import HomeAssistant
 from pyhilo.websocket import WebsocketClient
 from pytest_homeassistant_custom_component.common import (
@@ -73,6 +76,23 @@ def mock_api() -> Generator[MagicMock]:
         api_mock.get_devices.return_value = json.loads(load_fixture("all_devices.json"))
         api_mock.async_create.return_value = api_mock
         yield api_mock
+
+
+@pytest.fixture(autouse=True)
+def mock_network_calls() -> Generator[None]:
+    """Mock network calls to prevent SocketBlockedError."""
+    with (
+        patch("homeassistant.helpers.aiohttp_client.async_get_clientsession"),
+        patch("asyncio.BaseEventLoop.create_connection"),
+        patch("aiohappyeyeballs.impl.start_connection"),
+        patch("custom_components.hilo.GraphQlHelper") as mock_graphql_cc,
+        patch("pyhilo.graphql.GraphQlHelper") as mock_graphql_pyhilo,
+    ):
+        mock_graphql_cc.return_value.async_init = AsyncMock()
+        mock_graphql_cc.return_value.subscribe_to_device_updated = AsyncMock()
+        mock_graphql_pyhilo.return_value.async_init = AsyncMock()
+        mock_graphql_pyhilo.return_value.subscribe_to_device_updated = AsyncMock()
+        yield
 
 
 @pytest.fixture
